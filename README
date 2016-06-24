@@ -1,0 +1,138 @@
+To build: Just do "make". You need SDL installed.
+To run: Just type "timeless".
+To install: Just copy the timeless executable where you want it. It's
+standalone.
+
+Keyboard controls:
+escape     = exit
+f          = fast forward
+space      = pause
+1          = flip to showing the offscreen 256x256 bitmap
+
+
+CHANGE HISTORY + BACKGROUND:
+---------------------------------------------
+Sat Jul  5 01:24:58 EDT 2008
+David Ashley (dashxdr@gmail.com)
+
+Lots of code cleanup, got rid of warnings, tweaked Makefile. Added
+sound using the SDL_sound library, it plays the original rain.mtm file.
+Note you need the SDL_sound library to be installed, there isn't any
+elegant check for this.
+
+Allowed the window to be resized, and the timeless video will be scaled with
+aspect ratio preserved.
+---------------------------------------------
+
+Fri Jan 27 08:07:49 PST 2006
+David Ashley (dash@xdr.com)
+
+Version 1.00
+
+This is a port to linux/SDL of Tran's (aka Thomas Pytel) Timeless demo of
+1994. The demo was written in 100% assembly code and so wasn't portable.
+I spent a lot of time looking at the demo in those days, and showing it
+to other people (so I must have liked it). It is worth keeping around, I
+think. It was an MSDOS program with its own dos extender, which lets you use
+32 bit instructions + addressing modes.
+
+There were various complications in doing the port. The code was designed
+for VGA mode-x which separates every 4th pixel in the video memory into
+a separate region of memory. This lets you get access to more than the 64K
+video memory window alotment and you can do page flipping. However it's a
+headache to program. And it made the task harder because this code has to
+be unravelled. Under SDL we're just a flat 320x200 frame buffer.
+
+There are 3 layers to the demo. Layer 0 is the background. In the original
+source this is done using a 32000 word table that tells you how to move
+in an offscreen 256x256 byte buffer. The movement in the buffer wraps around
+in both x and y. Onscreen you're seeing a warped display of that buffer,
+and that's the most interesting visual affect of the demo.
+
+I didn't want to have too much data in this source, so I wrote code to
+generate a buffer similiar to the one in Tran's source. It uses sines and
+cosines and I tried to come up with a model for Tran's choice of the radius.
+I think the intent was a 3D projection, however I don't really know what
+his choice of R values were based on. This probably makes no sense whatsoever
+but I can't be bothered to explain. Suffice it to say my algorithmically
+generated warping table is almost exactly like Tran's, however with mine
+you can see how it's generated in the source. His algorithm must have been
+quite similiar.
+
+The 1st layer is drawn into by all the r_pXX functions. I've implemented
+these all.
+
+The 2nd layer is the sprites that move around the screen. These just add some
+spice to the demo. These sprites were implemented in the original source
+as data statements. It turns out the data statements represent X86 machine
+language code to bang the right byte values to draw the sprites onto the
+buffer at the address pointed to by edi. I wrote the gensprites.c program to
+decompile these programs and output pixel data, which becomes the sprites.c
+file. All the 2nd layer sprite hacks are implemented in this version of
+the source. These are the r_l1pXX functions.
+
+The 3rd layer is on top of the sprite layer, and I haven't implemented any
+of these functions. This layer shows a circle and the circle is meant to
+represent a sort of window into something else. In one instance the window
+is a view into the offscreen 256x256 bitmap -- sort of the magician showing
+how the trick works. This is a very nice touch by Tran, in my opinion. Another
+window just shows a representation of the entire screen, shrunk down so it
+fits into the circle. You can even see the circle itself in the circle as I
+recall.
+
+Meanwhile while these 3 layers are going on, there are palette effects going
+on, the colors are changing in interesting ways, fading in and out, etc.
+The layer0 background is also getting shifted around, the scanning point is
+moving around, the angle offet, and the scanning table itself is getting
+warped. It all adds up for a lot of variety.
+
+My original intent with this port was to make a cross platform version that
+would pass down through the ages, and be identical to the original version
+in every way. That means at exactly the same frame you'd see the same
+sprites moving around, the 256x256 bitmap would contain the same data,
+the music would sound the same -- in short it would be a faithful
+reproduction of the original.
+
+However over the course it has gotten extremely tedious to study the code and
+divine what was the original intent. It is very easy to make a mistake.
+The code is real spaghetti, difficult to read. It may be fast but it's not
+very intuitive. I have given up on even implementing the sound for now. This
+is unfortunate, because the music that plays during the demo is a big part of
+the demo. It's kind of haunting.
+
+You can run the original timeless.exe under dosemu. It runs slower than hell,
+but you can run it. I got some things to appear right. But the background
+doesn't match at the right place + the right time. My background gives
+the same "effect" as the original, however it's not frame by frame identical.
+I discovered there are some timing dependencies on how the palettes are
+faded from one to another, and my version doesn't match the original. I was
+trying to study the original to figure out the original code's intent when
+it just hit me...I don't have time to get it absolutely perfect. I just sort
+of gave up. My version is close enough to the original to reflect the essence
+of Tran's intent, in my opinion. If someone wants to make it absolutely
+identical, well the source is right there and you can figure it out.
+
+I can confirm:
+1) All the sprite image data is identical to the original
+2) All the background 32x32 bitmap data is identical to the original
+3) All the palette data is identical
+4) The random locations of the fishies appear to be identical. Perhaps
+other l1 sprite code is identical. I think the snow was identical, I
+saw similiar patterns between the two.
+5) My handling of palettes is not exact, and so the timings are off.
+This could affect everything. There is some machinery in there to fade
+the palette at 1 unit per iteration, or 2 units per iteration. It looked
+like the decision of which speed to use is based on how many colors are
+to be faded. That's when I gave up, it seemed ridiculous.
+6) I think my gnbg routine is correct, but if the scanning of the
+starting point in the 256x256 offscreen buffer doesn't match that would
+make the appearance not match.
+
+Anyway Tran says it took him 1 to 3 weeks to write the demo. I've probably
+invested about a week or so in this port. I can't see putting more time in
+the port than it took to make the original -- just to make the port
+*exactly* like the original.
+
+So I'm calling it quits. If this is useful to anyone that's great. I'd
+like to see it rolled into an xscreensaver hack, that would be cool.
+
