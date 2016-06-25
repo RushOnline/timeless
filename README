@@ -1,5 +1,6 @@
-To build: Just do "make". You need SDL installed.
-To run: Just type "timeless".
+To build: Just do "make". You need SDL installed (apt-get install libsdl1.2-dev libsdl-sound1.2-dev
+).
+To run: Just type "./timeless".
 To install: Just copy the timeless executable where you want it. It's
 standalone.
 
