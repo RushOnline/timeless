@@ -2,12 +2,21 @@
 # SDL_sound library installed for example
 #CFLAGS = -DNO_SOUND
 #DBG = -g
-CFLAGS += -O2 -Wall $(shell sdl-config --cflags) $(DBG)
-LDFLAGS = $(shell sdl-config --libs) -lSDL_sound
+
+.SUFFIXES:            # Delete the default suffixes
+.SUFFIXES: .c .o .h   # Define our suffix list
+
+.c.o:
+	$(CC) -c -o $@ $(CFLAGS) $<
+
+CC = gcc
+CFLAGS += -O2 -Wall $(shell sdl-config --cflags --libs) $(DBG)
+LDFLAGS = $(shell sdl-config --libs) -lSDL_sound -lm
 
 all: timeless gensprites
 
 timeless: timeless.o data.o sprites.o sound.o song.o scaler.o
+	$(CC) $? -o $@ $(LDFLAGS)
 
 timeless.o:	timeless.c timeless.h scaler.h
 
